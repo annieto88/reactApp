@@ -1,6 +1,8 @@
-#Clicky Game
+#reactApp
 
-### Instructions
+## Getting Started
+-1. run command line npm install </br>
+-2. run command line npm start </br>
 
-1. run command line npm install
-2. run command line npm start
+### Authors
+Annie To
