@@ -1,81 +1,112 @@
-import React, { Component } from 'react';
-import './App.css';
-import dogs from './dogs.json'
-import Wrapper from './components/Wrapper'
-import Navpills from './components/Navpills'
-import Title from './components/Title'
-import DogCard from './components/DogCard'
+import React, { Component } from "react";
+import MatchCard from "./components/MatchCard";
+import Wrapper from "./components/Wrapper";
+import Title from "./components/Title";
+import matches from "./matchcards.json";
+import "./App.css";
+
+let correctGuesses = 0;
+let bestScore = 0;
+let clickMessage = "Go ahead! Start clicking!";
 
 class App extends Component {
+    
+    // Setting this.state.matches to the matches json array
     state = {
-        message: "Click an image to begin!",
-        topScore: 0,
-        curScore: 0,
-        dogs: dogs,
-        unselectedDogs: dogs
-    }
+        matches,
+        correctGuesses,
+        bestScore,
+        clickMessage
+    };
 
-    componentDidMount() {
-    }
+    setClicked = id => {
 
-    shuffleArray = array => {
-        for (let i = array.length - 1; i > 0; i--) {
-            let j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-    }
+        // Make a copy of the state matches array to work with
+        const matches = this.state.matches;
 
-    selectDog = breed => {
-        const findDog = this.state.unselectedDogs.find(item => item.breed === breed);
+        // Filter for the clicked match
+        const clickedMatch = matches.filter(match => match.id === id);
 
-        if(findDog === undefined) {
-            // failure to select a new dog
-            this.setState({ 
-                message: "You guessed incorrectly!",
-                topScore: (this.state.curScore > this.state.topScore) ? this.state.curScore : this.state.topScore,
-                curScore: 0,
-                dogs: dogs,
-                unselectedDogs: dogs
-            });
-        }
-        else {
-            // success to select a new dog
-            const newDogs = this.state.unselectedDogs.filter(item => item.breed !== breed);
+        // If the matched image's clicked value is already true, 
+        // do the game over actions
+        if (clickedMatch[0].clicked){
+
+            console.log ("Correct Guesses: " + correctGuesses);
+            console.log ("Best Score: " + bestScore);
+
+            correctGuesses = 0;
+            clickMessage = "Dang! You already clicked on that one! Now you have to start over!"
+
+            for (let i = 0 ; i < matches.length ; i++){
+                matches[i].clicked = false;
+            }
+
+            this.setState({clickMessage});
+            this.setState({ correctGuesses });
+            this.setState({matches});
+
+        // Otherwise, ff clicked = false
+        } else {
+
+            // Set its value to true
+            clickedMatch[0].clicked = true;
+
+            // increment the appropriate counter
+            correctGuesses++;
             
-            this.setState({ 
-                message: "You guessed correctly!",
-                curScore: this.state.curScore + 1,
-                dogs: dogs,
-                unselectedDogs: newDogs
-            });
-        }
+            clickMessage = "Great! You haven't click on that one yet! Keep going!";
 
-        this.shuffleArray(dogs);
+            if (correctGuesses > bestScore){
+                bestScore = correctGuesses;
+                this.setState({ bestScore });
+            }
+
+            // Shuffle the array to be rendered in a random order
+            matches.sort(function(a, b){return 0.5 - Math.random()});
+
+            // Set this.state.matches equal to the new matches array
+            this.setState({ matches });
+            this.setState({correctGuesses});
+            this.setState({clickMessage});
+        }
     };
 
     render() {
         return (
             <Wrapper>
-                <Navpills
-                    message={this.state.message}
-                    curScore={this.state.curScore}
-                    topScore={this.state.topScore}
-                />
-                <Title />
-                {
-                    this.state.dogs.map(dog => (
-                        <DogCard
-                            breed={dog.breed}
-                            image={dog.image}
-                            selectDog={this.selectDog} 
-                            curScore={this.state.curScore}
-                        />
-                    ))
-                }
+                <Title>Clicky Game!</Title>
+                {this.state.matches.map(match => (
+                    <MatchCard
+                        setClicked={this.setClicked}
+                        id={match.id}
+                        key={match.id}
+                        image={match.image}
+                    />
+                ))}
+
+                <div>
+                <h2 className="scoreSummary">
+                    Click on an image to earn points, but don't click on any of them more than once!
+                </h2>
+                
+                <h3 className="scoreSummary">
+                    {this.state.clickMessage}
+                </h3>
+                
+                <h3 className="scoreSummary">
+                    Correct Guesses: {this.state.correctGuesses} 
+                </h3>
+                
+                <h3 className="scoreSummary">
+                    Best Score: {this.state.bestScore} 
+                </h3>
+                </div>
+                
             </Wrapper>
+
+
         );
     }
 }
 
 export default App;
-
